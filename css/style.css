@@ -1,0 +1,46 @@
+.viewer__container {
+    display: flex;
+    justify-content: center;
+    margin: 0 10%;
+    padding: 30px;
+    height: 80%;
+}
+.viever__inside-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid green;
+    background-color: yellowgreen;
+    width: 200px;
+    height: 200px;
+    display: none;
+}
+
+.visible {
+    display: flex;
+}
+
+.pagination__paginator-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    
+}
+
+.pagination__page {
+    width: 30px;
+    height: 30px;
+    offset: none;
+    margin: 4px;
+}
+
+.pagination__page:hover {
+    box-shadow: 2px 2px 2px black;
+    transform: scale(1.2);
+}
+
+.pagination__page--active {
+    background: lightgreen;
+    font-weight: 800;
+}
+
