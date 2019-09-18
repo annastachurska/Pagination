@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 offset: this.props.offset,
                 paginationMaxSize: 1,
                 paginationActualSize: 1,
-                paginationActivePosition: 1, 
                 paginationInitialNumber: 1
             }
         }
@@ -62,22 +61,17 @@ document.addEventListener('DOMContentLoaded', function(){
             let paginationMaxSize = 2*Number(inputSizes.offset)+1;
             let paginationActualSize = (paginationMaxSize > Number(inputSizes.pagesNumber)) ? Number(inputSizes.pagesNumber) : paginationMaxSize;
          
-            let paginationActivePosition = 1;
             let paginationInitialNumber = 1;
 
             if ((inputSizes.page-inputSizes.offset <= 0) || (inputSizes.page+inputSizes.offset > inputSizes.pagesNumber)) {
                 if (inputSizes.page-inputSizes.offset <= 0) {
                     paginationInitialNumber = 1; 
-                    paginationActivePosition = Number(inputSizes.page) - paginationInitialNumber;
-
                 }
 
                 if (inputSizes.page+inputSizes.offset > inputSizes.pagesNumber) {
                     paginationInitialNumber = Number(inputSizes.pagesNumber) - paginationActualSize+1;
-                    paginationActivePosition = Number(inputSizes.pagesNumber) - paginationInitialNumber;
                 }
             } else {
-                paginationActivePosition = inputSizes.offset + 1;
                 paginationInitialNumber = inputSizes.page - inputSizes.offset;
             }
 
@@ -85,7 +79,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 paginationMaxSize: paginationMaxSize,
                 paginationActualSize: paginationActualSize,
                 paginationInitialNumber: paginationInitialNumber,
-                paginationActivePosition: paginationActivePosition
             } 
 
             return partialSizes;
@@ -106,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 offset: initialInputs.offset,
                 paginationMaxSize: partialSizes.paginationMaxSize,
                 paginationActualSize: partialSizes.paginationActualSize,
-                paginationActivePosition: partialSizes.paginationActivePosition, 
                 paginationInitialNumber: partialSizes.paginationInitialNumber
             });
         }  
@@ -126,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 offset: this.state.offset,
                 paginationMaxSize: partialSizes.paginationMaxSize,
                 paginationActualSize: partialSizes.paginationActualSize,
-                paginationActivePosition: partialSizes.paginationActivePosition, 
                 paginationInitialNumber: partialSizes.paginationInitialNumber
             }, function() {
 
@@ -176,7 +167,17 @@ document.addEventListener('DOMContentLoaded', function(){
             pagesStartingParams.page = event.target.name === 'page' ? Number(event.target.value) : this.state.page;
             pagesStartingParams.pagesNumber = event.target.name === 'pagesNumber' ? Number(event.target.value) : this.state.pagesNumber;
             pagesStartingParams.offset = event.target.name === 'offset' ? Number(event.target.value) : this.state.offset;
-            
+
+            //kod ponizej uniemożliwi wpisanie do imputów wartości które uniemożliwiają pokazanie strony. 
+            //Bez tego nic się nie wyświetla ale nie ma błędu.
+            // Zastosowanie zależy od oczekiwan dot. działania
+            if (pagesStartingParams.page > pagesStartingParams.pagesNumber) {
+                pagesStartingParams.page = pagesStartingParams.pagesNumber
+            }
+            if (pagesStartingParams.offset > Math.floor(pagesStartingParams.pagesNumber/2)) {
+                pagesStartingParams.offset = Math.floor(pagesStartingParams.pagesNumber/2);
+            }
+
             let isPageNumberChanged = event.target.name === 'pagesNumber';
             let partialSizes = this.createPaginationExactSizes(pagesStartingParams);
 
@@ -186,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 offset: pagesStartingParams.offset,
                 paginationMaxSize: partialSizes.paginationMaxSize,
                 paginationActualSize: partialSizes.paginationActualSize,
-                paginationActivePosition: partialSizes.paginationActivePosition, 
                 paginationInitialNumber: partialSizes.paginationInitialNumber
             }, function() {
                 let pagesInitialParams = {
