@@ -168,9 +168,9 @@ document.addEventListener('DOMContentLoaded', function(){
             pagesStartingParams.pagesNumber = event.target.name === 'pagesNumber' ? Number(event.target.value) : this.state.pagesNumber;
             pagesStartingParams.offset = event.target.name === 'offset' ? Number(event.target.value) : this.state.offset;
 
-            //kod ponizej uniemożliwi wpisanie do imputów wartości które uniemożliwiają pokazanie strony. 
-            //Bez tego nic się nie wyświetla ale nie ma błędu.
-            // Zastosowanie zależy od oczekiwan dot. działania
+            // code below prevents user from typing to hight values of page and offset when compared to pagesNumber 
+            // without the code no page is displayed (no div) and also there is no error in the console
+            // usage of this code depends on expectations of component behaviour
             if (pagesStartingParams.page > pagesStartingParams.pagesNumber) {
                 pagesStartingParams.page = pagesStartingParams.pagesNumber
             }
