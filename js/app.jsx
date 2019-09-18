@@ -10,24 +10,6 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }
 
-    class Viewer extends React.Component{
-        constructor(props){
-            super(props);
-        }
-
-        render(){
-            const subpages = Array(this.props.pagesNumber).fill().map( (subpage, index) => {
-                let dod = (index+1)===this.props.page ? 'viever__inside-page visible' : 'viever__inside-page';
-                return <div className={dod} data-counter={'element-'+index-+1} id={index-+1} key={index-+1}>Div {index+1}</div>
-            });
-            return(
-                <div className="viewer__container">
-                    {subpages}
-                </div>
-            )
-        }
-    }
-
     class Pagination extends React.Component{
         constructor(props){
             super(props);
@@ -46,121 +28,209 @@ document.addEventListener('DOMContentLoaded', function(){
             this.calculatePagerSizes();
         }
 
-        handlePageInput(event) {
-            console.log('event.target.value', event.target.value)
-            this.setState({
-                page: event.target.value
-            })
-            // this.props.onPageChange(event.target.value)
-            // this.onPageChange(e);
-          }
+        componentDidMount() {
+            let paginationParams = {
+                page: this.state.page,
+                paginationActualSize: this.state.paginationActualSize,
+                paginationInitialNumber: this.state.paginationInitialNumber
+            }
 
-        calculatePagerSizes() {
-            let paginationMaxSize = 2*Number(this.state.offset)+1;
-            let paginationActualSize = (paginationMaxSize > Number(this.state.pagesNumber)) ? Number(this.state.pagesNumber) : paginationMaxSize;
+            let pagesInitialParams = {
+                page: this.state.page,
+                pagesNumber: this.state.pagesNumber
+            }
+
+            this.createPagination(paginationParams);
+            this.createPages(pagesInitialParams);
+            this.changeDisplayedDiv(this.state.page)
+        }
+
+        createPages(pagesInitialParams) {
+            let pagesContainer = document.querySelector('.viewer__container');
+            pagesContainer.innerHTML = '';
+
+            for (let i=1; i <= pagesInitialParams.pagesNumber; i++) {
+                let newPage = document.createElement('div');
+                pagesContainer.append(newPage);
+                newPage.innerText = 'Div ' + i;
+                newPage.className = i===pagesInitialParams.page ? 'viever__inside-page visible' : 'viever__inside-page';
+                newPage.id = i;
+            }   
+        }
+
+        createPaginationExactSizes(inputSizes) {
+            let paginationMaxSize = 2*Number(inputSizes.offset)+1;
+            let paginationActualSize = (paginationMaxSize > Number(inputSizes.pagesNumber)) ? Number(inputSizes.pagesNumber) : paginationMaxSize;
          
             let paginationActivePosition = 1;
             let paginationInitialNumber = 1;
 
-            if ((this.state.page-this.state.offset <= 0) || (this.state.page+this.state.offset > this.state.pagesNumber)) {
-                if (this.state.page-this.state.offset <= 0) {
+            if ((inputSizes.page-inputSizes.offset <= 0) || (inputSizes.page+inputSizes.offset > inputSizes.pagesNumber)) {
+                if (inputSizes.page-inputSizes.offset <= 0) {
                     paginationInitialNumber = 1; 
-                    paginationActivePosition = Number(this.state.page) - paginationInitialNumber;
+                    paginationActivePosition = Number(inputSizes.page) - paginationInitialNumber;
 
                 }
 
-                if (this.state.page+this.state.offset > this.state.pagesNumber) {
-                    paginationInitialNumber = Number(this.state.pagesNumber) - paginationActualSize+1;
-                    paginationActivePosition = Number(this.state.pagesNumber) - paginationInitialNumber;
+                if (inputSizes.page+inputSizes.offset > inputSizes.pagesNumber) {
+                    paginationInitialNumber = Number(inputSizes.pagesNumber) - paginationActualSize+1;
+                    paginationActivePosition = Number(inputSizes.pagesNumber) - paginationInitialNumber;
                 }
             } else {
-                paginationActivePosition = this.state.offset + 1;
-                paginationInitialNumber = this.state.page - this.state.offset;
+                paginationActivePosition = inputSizes.offset + 1;
+                paginationInitialNumber = inputSizes.page - inputSizes.offset;
             }
 
-            let originalState = this.state;
-            this.setState({
-                page: this.props.page,
-                pagesNumber: this.props.pagesNumber,
-                offset: this.props.offset,
+            let partialSizes = {
                 paginationMaxSize: paginationMaxSize,
                 paginationActualSize: paginationActualSize,
-                paginationActivePosition: paginationActivePosition, 
-                paginationInitialNumber: paginationInitialNumber
-            });
+                paginationInitialNumber: paginationInitialNumber,
+                paginationActivePosition: paginationActivePosition
+            } 
 
+            return partialSizes;
+        }
+
+        calculatePagerSizes() {
+            let initialInputs = {
+                page: this.state.page,
+                pagesNumber: this.state.pagesNumber,
+                offset: this.state.offset
+            }
+
+            let partialSizes = this.createPaginationExactSizes(initialInputs);
+       
+            this.setState({
+                page: initialInputs.page,
+                pagesNumber: initialInputs.pagesNumber,
+                offset: initialInputs.offset,
+                paginationMaxSize: partialSizes.paginationMaxSize,
+                paginationActualSize: partialSizes.paginationActualSize,
+                paginationActivePosition: partialSizes.paginationActivePosition, 
+                paginationInitialNumber: partialSizes.paginationInitialNumber
+            });
         }  
 
         changePagination(e) {
-        let newPage = Number(e.target.innerText);   
-
-        let divs = document.querySelectorAll('.pagination__page').forEach(element => element.className="pagination__page");
-        document.getElementById(this.state.page).classList.toggle('pagination__page--active');
-        this.forceUpdate();
-        //document.querySelector('.pagination__paginator-container').getElementById(this.state.page).;
-        let self = this;
-
-        let paginationMaxSize = 2*Number(this.state.offset)+1;
-            let paginationActualSize = (paginationMaxSize > Number(this.state.pagesNumber)) ? Number(this.state.pagesNumber) : paginationMaxSize;
-         
-            let paginationActivePosition = 1;
-            let paginationInitialNumber = 1;
-
-            if ((this.state.page-this.state.offset <= 0) || (this.state.page+this.state.offset > this.state.pagesNumber)) {
-                if (this.state.page-this.state.offset <= 0) {
-                    paginationInitialNumber = 1; 
-                    paginationActivePosition = Number(this.state.page) - paginationInitialNumber;
-
-                }
-
-                if (this.state.page+this.state.offset > this.state.pagesNumber) {
-                    paginationInitialNumber = Number(this.state.pagesNumber) - paginationActualSize+1;
-                    paginationActivePosition = Number(this.state.pagesNumber) - paginationInitialNumber;
-                }
-            } else {
-                paginationActivePosition = this.state.offset + 1;
-                paginationInitialNumber = this.state.page - this.state.offset;
+            let newPage = Number(e.target.innerText);   
+            let startingParameters = {
+                page: newPage,
+                pagesNumber: this.state.pagesNumber,
+                offset: this.state.offset
             }
+            let partialSizes = this.createPaginationExactSizes(startingParameters);
 
+            this.setState({
+                page: newPage,
+                pagesNumber: this.state.pagesNumber,
+                offset: this.state.offset,
+                paginationMaxSize: partialSizes.paginationMaxSize,
+                paginationActualSize: partialSizes.paginationActualSize,
+                paginationActivePosition: partialSizes.paginationActivePosition, 
+                paginationInitialNumber: partialSizes.paginationInitialNumber
+            }, function() {
 
-        // this.setState({
-        //     page: newPage,
-        //     pagesNumber: self.state.pagesNumber,
-        //     offset: self.state.offset,
-        //     paginationMaxSize: paginationMaxSize,
-        //     paginationActualSize: paginationActualSize,
-        //     paginationActivePosition: paginationActivePosition, 
-        //     paginationInitialNumber: paginationInitialNumber
-        // });
-        // console.log(this.state, 'state')
-        // this.calculatePagerSizes();
+                let divs = document.querySelectorAll('.pagination__page');
+                divs.forEach(element => element.className="pagination__page");
+                
+                let paginationParams = {
+                    page: newPage,
+                    paginationActualSize: partialSizes.paginationActualSize,
+                    paginationInitialNumber: partialSizes.paginationInitialNumber
+                }
+                this.createPagination(paginationParams);
+                this.changeDisplayedDiv(newPage);
+            });
+        }
+
+        createPagination(paginationParams) {
+            let container = document.querySelector('.pagination__paginator-container');
+            container.innerHTML = '';
+            let self = this;
+            for (let i=0; i < paginationParams.paginationActualSize; i++) {
+                let pagerItem = document.createElement('button');
+                container.append(pagerItem);
+                pagerItem.innerText = i+paginationParams.paginationInitialNumber;
+                pagerItem.className = (i+paginationParams.paginationInitialNumber)===paginationParams.page 
+                ? 'pagination__page pagination__page--active' : 'pagination__page';
+                pagerItem.id = 'pager-' + (i+paginationParams.paginationInitialNumber);
+                pagerItem.addEventListener('click', function(e) {
+                    self.changePagination(e);
+                });
+            }
+        }
+
+        changeDisplayedDiv(page) {
+            let oldVisibleElement = document.querySelector('.visible');
+            if (oldVisibleElement) {
+                oldVisibleElement.classList.toggle('visible');
+            }
+            let newEl = document.getElementById(page);
+            if (newEl) {
+                newEl.classList.add('visible');
+            }
+        }
+
+        handlePageInput(event) {
+            let pagesStartingParams = {};
+            pagesStartingParams.page = event.target.name === 'page' ? Number(event.target.value) : this.state.page;
+            pagesStartingParams.pagesNumber = event.target.name === 'pagesNumber' ? Number(event.target.value) : this.state.pagesNumber;
+            pagesStartingParams.offset = event.target.name === 'offset' ? Number(event.target.value) : this.state.offset;
+            
+            let isPageNumberChanged = event.target.name === 'pagesNumber';
+            let partialSizes = this.createPaginationExactSizes(pagesStartingParams);
+
+            this.setState({
+                page: pagesStartingParams.page,
+                pagesNumber: pagesStartingParams.pagesNumber,
+                offset: pagesStartingParams.offset,
+                paginationMaxSize: partialSizes.paginationMaxSize,
+                paginationActualSize: partialSizes.paginationActualSize,
+                paginationActivePosition: partialSizes.paginationActivePosition, 
+                paginationInitialNumber: partialSizes.paginationInitialNumber
+            }, function() {
+                let pagesInitialParams = {
+                    page: pagesStartingParams.page,
+                    pagesNumber: pagesStartingParams.pagesNumber,
+                }
+                isPageNumberChanged ? this.createPages(pagesInitialParams) : null;
+                let divs = document.querySelectorAll('.pagination__page');
+                divs.forEach(element => element.className="pagination__page");
+                let paginationParams = {
+                    page: pagesStartingParams.page,
+                    paginationActualSize: partialSizes.paginationActualSize,
+                    paginationInitialNumber: partialSizes.paginationInitialNumber
+                }
+                this.createPagination(paginationParams);
+                this.changeDisplayedDiv(pagesStartingParams.page);
+            });
         }
 
         render(){
-            console.log('render')
-            let paginationElements = Array(this.state.paginationActualSize).fill().map( (subpage, index) => {
-                let classDefinition = (index+1)===this.state.paginationActivePosition ? 'pagination__page pagination__page--active' : 'pagination__page';
-                return <button type="button" className={classDefinition} 
-                id={index+this.state.paginationInitialNumber} key={'key'+index} onClick={this.changePagination.bind(this)}>{index+this.state.paginationInitialNumber}</button>
-            });
-
             return(
                 <div>
-                    <div className="pagination__paginator-container">
-                        {paginationElements}
+                    <div className="viewer__container">
                     </div>
-         
-                    <label>
-                        Strona
-                        <input type="number" placeholder="Wybierz stronę" value={this.state.page} onChange={this.handlePageInput} min="1" max={this.props.pagesNumber}/>
-                        {/* //<input type="number" placeholder="Wybierz stronę" value={this.state.inputValue} onChange={this.updateInputValue}/> */}
-                        
-                    </label>
-                    <span>z</span>
-                    <label>
-                        <input type="number" placeholder="Liczba stron" value={this.state.pagesNumber} min="1"/>
-                    </label>
-
+                    <div className="pagination__paginator-container">
+                    </div>
+                    <form className="pagination__inputs">
+                        <label>
+                            Strona
+                            <input name="page" type="number" placeholder="Wybierz stronę" value={this.state.page} 
+                                onChange={this.handlePageInput.bind(this)} min="1" max={this.state.pagesNumber} />
+                        </label>
+                        <span>z</span>
+                        <label aria-label="liczba stron">
+                            <input name="pagesNumber" type="number" placeholder="Liczba stron" 
+                                value={this.state.pagesNumber} onChange={this.handlePageInput.bind(this)} min="1" />
+                        </label>
+                        <label>
+                            Offset
+                            <input name="offset" type="number" placeholder="Offset:" 
+                                value={this.state.offset} onChange={this.handlePageInput.bind(this)} min="0" 
+                                max={Math.floor(this.state.pagesNumber/2)} />
+                        </label>
+                    </form>
                 </div>
             )
         }
@@ -171,24 +241,15 @@ document.addEventListener('DOMContentLoaded', function(){
             super(props);
             this.state = {
                 offset: 3,
-                page: 2,
-                pagesNumber: 3
+                page: 8,
+                pagesNumber: 13
             }
-        }
-
-        onPageChange(value) {
-            console.log('wyzej')
-            this.setState({
-                page: value
-            })
         }
 
         render(){
             return(
-                <div>
-                    <Viewer offset={this.state.offset} page={this.state.page} pagesNumber={this.state.pagesNumber} />
-                    <Pagination offset={this.state.offset} page={this.state.page} pagesNumber={this.state.pagesNumber} onPageChange={this.onPageChange}/>
-                </div>
+                <Pagination offset={this.state.offset} page={this.state.page} pagesNumber={this.state.pagesNumber} 
+                    onPageChange={this.onPageChange}/>
             )
         }
     }
@@ -196,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function(){
     class Footer extends React.Component{
         render(){
             return(
-                <footer>
+                <footer className="footer__container">
                     <span>Made by Anna Stachurska, 2019</span>
                 </footer>
             )
